@@ -473,7 +473,7 @@ function render() {
   updateSummary();
 }
  
-function change(id, delta) {
+window.change = function change(id, delta) {
   const item = items.find(i => i.id === id);
   if (!item) return;
   const newVal = item.boxes + delta;
