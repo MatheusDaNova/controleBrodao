@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Estoque · Lanchonete</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #811f3b;
+    --surface: #1a1915;
+    --card: #211f1a;
+    --border: #2e2b24;
+    --accent: #f5a623;
+    --accent2: #e8431a;
+    --text: #f0ebe0;
+    --muted: #7a7060;
+    --green: #5cb85c;
+    --red: #e8431a;
+    --green-logo : #B4BE4B;
+  }
+ 
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+ 
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse at 10% 0%, rgba(245,166,35,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse at 90% 100%, rgba(232,67,26,0.06) 0%, transparent 60%);
+  }
+ 
+  header {
+    padding: 2rem 2rem 0;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .logo-area{
+    display: flex;
+  }
+  .logo-text{
+    margin: auto;
+  }
+  .logo-area h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.4rem, 6vw, 3rem);
+    letter-spacing: 0.04em;
+    line-height: 1;
+    color: var(--green-logo);
+    margin: auto;
+  }
+ 
+  .logo-area p {
+    color: var(--muted);
+    font-size: 0.85rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-top: 0.2rem;
+    margin: auto;
+  }
+ 
+  .summary-bar {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+ 
+  .summary-chip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.6rem 1.1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 90px;
+  }
+ 
+  .summary-chip .label {
+    font-size: 0.68rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+ 
+  .summary-chip .value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.7rem;
+    color: var(--accent);
+    line-height: 1.1;
+  }
+ 
+  .summary-chip .value.total-unit {
+    color: var(--text);
+  }
+ 
+  main {
+    max-width: 1200px;
+    margin: 2.5rem auto 4rem;
+    padding: 0 2rem;
+  }
+ 
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 0.16em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+ 
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+ 
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.2rem;
+  }
+ 
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.4rem 1.4rem 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    transition: border-color 0.2s, transform 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+ 
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+ 
+  .card:hover {
+    border-color: rgba(245,166,35,0.35);
+    transform: translateY(-2px);
+  }
+ 
+  .card:hover::before { opacity: 1; }
+ 
+  .card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+ 
+  .card-emoji {
+    font-size: 2rem;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+ 
+  .card-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.2;
+  }
+ 
+  .card-sub {
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-top: 0.15rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+ 
+  .badge {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.55rem;
+    border-radius: 20px;
+    flex-shrink: 0;
+  }
+ 
+  .badge-ok { background: rgba(92,184,92,0.15); color: var(--green); border: 1px solid rgba(92,184,92,0.3); }
+  .badge-low { background: rgba(245,166,35,0.15); color: var(--accent); border: 1px solid rgba(245,166,35,0.3); }
+  .badge-empty { background: rgba(232,67,26,0.15); color: var(--red); border: 1px solid rgba(232,67,26,0.3); }
+ 
+  .card-counts {
+    display: flex;
+    gap: 0.7rem;
+  }
+ 
+  .count-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.55rem 0.8rem;
+    flex: 1;
+    text-align: center;
+  }
+ 
+  .count-block .cb-label {
+    font-size: 0.63rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+  }
+ 
+  .count-block .cb-value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    line-height: 1.1;
+    color: var(--text);
+  }
+ 
+  .count-block .cb-value.highlight { color: var(--accent); }
+ 
+  .card-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+ 
+  .ctrl-btn {
+    background: none;
+    border: none;
+    color: var(--text);
+    font-size: 1.3rem;
+    width: 48px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    flex-shrink: 0;
+  }
+
+  .logo-brodao{
+    max-height: 15vh;
+    margin: auto;
+  }
+ 
+  .ctrl-btn:hover { background: rgba(255,255,255,0.06); }
+  .ctrl-btn.minus:hover { color: var(--red); }
+  .ctrl-btn.plus:hover { color: var(--accent); }
+  .ctrl-btn:active { transform: scale(0.92); }
+  .ctrl-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+ 
+  .ctrl-label {
+    flex: 1;
+    text-align: center;
+    font-size: 0.72rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    user-select: none;
+  }
+ 
+  /* pulse on change */
+  @keyframes pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+    100% { transform: scale(1); }
+  }
+  .pop { animation: pop 0.2s ease; }
+ 
+  /* Toast */
+  #toast {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0.8rem 1.2rem;
+    font-size: 0.85rem;
+    color: var(--text);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+    transform: translateY(80px);
+    opacity: 0;
+    transition: transform 0.3s, opacity 0.3s;
+    z-index: 999;
+    max-width: 260px;
+  }
+  #toast.show { transform: translateY(0); opacity: 1; }
+ 
+  .toast-icon { margin-right: 0.4rem; }
+ 
+  footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.75rem;
+    padding-bottom: 1.5rem;
+  }
+ 
+  @media (max-width: 500px) {
+    header { padding: 1.4rem 1.2rem 0; }
+    main { padding: 0 1.2rem; margin-top: 2rem; }
+    .grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+ 
+<header>
+  <div class="logo-area">
+    <img src="../img/logoBrodao.png" class="logo-brodao">
+    <div class="logo-text">
+      <h1>Estoque</h1>
+      <p>Controle de salgados · Brodão</p>
+    </div>
+  </div>
+  <div class="summary-bar">
+    <div class="summary-chip">
+      <span class="label">Caixas totais</span>
+      <span class="value" id="total-boxes">0</span>
+    </div>
+    <div class="summary-chip">
+      <span class="label">Salgados totais</span>
+      <span class="value total-unit" id="total-units">0</span>
+    </div>
+    <div class="summary-chip">
+      <span class="label">Itens em falta</span>
+      <span class="value" id="total-empty" style="color: var(--red)">0</span>
+    </div>
+  </div>
+</header>
+ 
+<main>
+  <div class="section-title">Salgados</div>
+  <div class="grid" id="grid"></div>
+</main>
+ 
+<footer>20 salgados por caixa · atualizado em tempo real</footer>
+ 
+<div id="toast"></div>
+ 
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+ 
+// ============================================================
+//  🔧 COLE AQUI AS SUAS CREDENCIAIS DO FIREBASE
+// ============================================================
+const firebaseConfig = {
+  apiKey: "AIzaSyD5WD6H5KDr3cglKW71JRqdgtnKyypwKtc",
+  authDomain: "estoque-brodao.firebaseapp.com",
+  databaseURL: "https://estoque-brodao-default-rtdb.firebaseio.com",
+  projectId: "estoque-brodao",
+};
+// ============================================================
+ 
+const app = initializeApp(firebaseConfig);
+const db  = getDatabase(app);
+const estoqueRef = ref(db, 'estoque');
+ 
+const PER_BOX = 20;
+ 
+const defaults = [
+  { id: 1,  emoji: '🧅', name: 'Cebola',    sub: 'Queijo, Presunto e cebola',        boxes: 8 },
+  { id: 2,  emoji: '🧀', name: 'Queijo e Presunto',      sub: 'Tradicional',              boxes: 4  },
+  { id: 3,  emoji: '🍔', name: 'Hamburguer',           sub: 'Mussarela',       boxes: 3 },
+  { id: 4,  emoji: '🍯', name: 'Hamburguer',sub: 'Cheddar',             boxes: 6  },
+  { id: 5,  emoji: '🍗', name: 'Frango',           sub: 'Frango com Requeijão',     boxes: 2 },
+  { id: 6,  emoji: '🍖', name: 'Carne-Seca',         sub: '',           boxes: 0  },
+  { id: 7,  emoji: '🌿', name: 'Pastel de Forno',  sub: 'Queijo minas e espinafre',        boxes: 1  },
+  { id: 8,  emoji: '🍗', name: 'Pastel de Forno',  sub: 'Frango',  boxes: 1  },
+  { id: 9,  emoji: '🥟', name: 'Coxinha',         sub: 'Frango com catupiry',   boxes: 5 },
+  { id: 10,  emoji: '🥐', name: 'Croissant',      sub: 'Chocolate',              boxes: 4  },
+  { id: 11, emoji: '🍕', name: 'Calabresa',      sub: '',   boxes: 4  },
+  { id: 12, emoji: '🍡', name: 'Napolitano',      sub: '',   boxes: 1},
+  { id: 13, emoji: '🌭', name: 'Dogão',      sub: '',   boxes: 2  },
+  { id: 14, emoji: '🥩', name: 'Costela',      sub: '',   boxes: 5 },
+];
+ 
+// Estado local (espelho do Firebase)
+const items = defaults.map(i => ({ ...i }));
+ 
+// Salva apenas o campo alterado no Firebase
+function saveItem(id, boxes) {
+  update(estoqueRef, { [id]: boxes });
+}
+ 
+// Escuta mudanças em tempo real vindas do Firebase
+onValue(estoqueRef, (snapshot) => {
+  const data = snapshot.val() || {};
+  items.forEach(item => {
+    if (data[item.id] !== undefined) {
+      item.boxes = data[item.id];
+    }
+  });
+  render();
+  setLoading(false);
+});
+ 
+// Indica carregando enquanto Firebase não responde
+function setLoading(on) {
+  document.getElementById('grid').style.opacity = on ? '0.4' : '1';
+}
+setLoading(true);
+ 
+function getBadge(boxes) {
+  if (boxes === 0) return ['badge-empty', 'Esgotado'];
+  if (boxes <= 2)  return ['badge-low',   'Baixo'];
+  return ['badge-ok', 'OK'];
+}
+ 
+function render() {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  items.forEach(item => {
+    const [badgeClass, badgeLabel] = getBadge(item.boxes);
+    const units = item.boxes * PER_BOX;
+    const div = document.createElement('div');
+    div.className = 'card';
+    div.id = `card-${item.id}`;
+    div.innerHTML = `
+      <div class="card-top">
+        <div>
+          <div style="display:flex;align-items:center;gap:0.6rem">
+            <span class="card-emoji">${item.emoji}</span>
+            <div>
+              <div class="card-name">${item.name}</div>
+              <div class="card-sub">${item.sub}</div>
+            </div>
+          </div>
+        </div>
+        <span class="badge ${badgeClass}">${badgeLabel}</span>
+      </div>
+      <div class="card-counts">
+        <div class="count-block">
+          <div class="cb-label">Caixas</div>
+          <div class="cb-value highlight" id="boxes-${item.id}">${item.boxes}</div>
+        </div>
+        <div class="count-block">
+          <div class="cb-label">Salgados</div>
+          <div class="cb-value" id="units-${item.id}">${units}</div>
+        </div>
+      </div>
+      <div class="card-controls">
+        <button class="ctrl-btn minus" onclick="change(${item.id}, -1)" ${item.boxes === 0 ? 'disabled' : ''} title="Remover caixa">−</button>
+        <span class="ctrl-label">caixas</span>
+        <button class="ctrl-btn plus" onclick="change(${item.id}, +1)" title="Adicionar caixa">+</button>
+      </div>
+    `;
+    grid.appendChild(div);
+  });
+  updateSummary();
+}
+ 
+function change(id, delta) {
+  const item = items.find(i => i.id === id);
+  if (!item) return;
+  const newVal = item.boxes + delta;
+  if (newVal < 0) return;
+  item.boxes = newVal;
+ 
+  // update card elements
+  const [badgeClass, badgeLabel] = getBadge(item.boxes);
+  const card = document.getElementById(`card-${item.id}`);
+  const boxEl  = document.getElementById(`boxes-${item.id}`);
+  const unitEl = document.getElementById(`units-${item.id}`);
+  const badge  = card.querySelector('.badge');
+  const minusBtn = card.querySelector('.ctrl-btn.minus');
+ 
+  boxEl.textContent  = item.boxes;
+  unitEl.textContent = item.boxes * PER_BOX;
+  badge.className    = `badge ${badgeClass}`;
+  badge.textContent  = badgeLabel;
+  minusBtn.disabled  = item.boxes === 0;
+ 
+  // pop animation
+  boxEl.classList.remove('pop');
+  void boxEl.offsetWidth;
+  boxEl.classList.add('pop');
+  showToast(delta > 0 ? '📦' : '🗑️', item.name, delta);
+  saveItem(item.id, item.boxes);
+  updateSummary();
+}
+ 
+function updateSummary() {
+  const totalBoxes = items.reduce((s, i) => s + i.boxes, 0);
+  const totalUnits = totalBoxes * PER_BOX;
+  const empty = items.filter(i => i.boxes === 0).length;
+ 
+  document.getElementById('total-boxes').textContent = totalBoxes;
+  document.getElementById('total-units').textContent = totalUnits;
+  document.getElementById('total-empty').textContent = empty;
+}
+ 
+let toastTimer;
+function showToast(icon, name, delta) {
+  const el = document.getElementById('toast');
+  const action = delta > 0 ? 'adicionada ao' : 'removida do';
+  el.innerHTML = `<span class="toast-icon">${icon}</span> 1 caixa ${action} estoque de <strong>${name}</strong>`;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
+}
+ 
+</script>
+</body>
+</html>
+ 
