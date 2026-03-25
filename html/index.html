@@ -386,6 +386,28 @@ const nomes = {
 const params = new URLSearchParams(window.location.search);
 const loja = params.get('loja') || 'Brodão'; // fallback se não tiver parâmetro
 
+ // ✅ Validação — bloqueia se a loja não estiver no dicionário
+  if (!(loja in nomes)) {
+    document.body.innerHTML = `
+      <div style="
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        min-height: 100vh; gap: 1rem;
+        font-family: 'DM Sans', sans-serif;
+        color: #f0ebe0;
+      ">
+        <span style="font-size: 3rem;">🚫</span>
+        <h2 style="font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 0.1em;">
+          Acesso não autorizado
+        </h2>
+        <p style="color: #7a7060; font-size: 0.9rem;">
+          A filial "<strong style="color:#f0ebe0">${loja}</strong>" não está cadastrada no sistema.
+        </p>
+      </div>
+    `;
+    throw new Error(`Filial "${loja}" não encontrada.`); // interrompe o script
+  }
+
 const nomeLoja = nomes[loja] || loja;
 
 // ✅ ATUALIZA O TÍTULO DA PÁGINA COM O NOME DA LOJA
