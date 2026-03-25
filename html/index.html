@@ -330,6 +330,7 @@
 <header>
   <div class="logo-area">
     <img src="img/logoBrodao.png" class="logo-brodao">
+    <img id="img-filial" src="" class="logo-brodao"> 
     <div class="logo-text">
       <h1>Estoque</h1>
       <p id="subtitulo-loja">Controle de salgados · Brodão</p>
@@ -441,17 +442,19 @@ const defaults = [
   { id: 17, emoji: '', name: 'Kibe',      sub: '',   boxes: 0 },
   { id: 18, emoji: '🥐', name: 'Croissant',      sub: 'Chocolate', boxes: 1 },
   { id: 19, emoji: '🌕', name: 'Pão de queijo',      sub: '', boxes: 1},
-
-  ( loja === 'aeroporto' ? [
-    { id: 15, emoji: '🥔', name: 'Pão de Batata',         sub: '',                    boxes: 0 },
-    { id: 16, emoji: '🥧', name: 'Empadão',               sub: '',                    boxes: 0 },
-    { id: 17, emoji: '🍬', name: 'Docinho',               sub: '',                    boxes: 0 },
-    { id: 18, emoji: '🎂', name: 'Bolo',                  sub: '',                    boxes: 0 },
-    { id: 19, emoji: '🥪', name: 'Sanduíche Natural',     sub: '',                    boxes: 0 },
-    { id: 20, emoji: '🥪', name: 'Sanduíche Natural',     sub: 'Frango',              boxes: 0 },
-  ] : []),
 ];
- 
+
+ if ( loja === 'aeroporto') {
+    defaults.push (
+    { id: 20, emoji: '🥔', name: 'Pão de Batata',         sub: '',                    boxes: 0 },
+    { id: 21, emoji: '🥧', name: 'Empadão',               sub: '',                    boxes: 0 },
+    { id: 22, emoji: '🍬', name: 'Docinho',               sub: '',                    boxes: 0 },
+    { id: 23, emoji: '🎂', name: 'Bolo',                  sub: '',                    boxes: 0 },
+    { id: 24, emoji: '🥪', name: 'Sanduíche Natural',     sub: '',                    boxes: 0 },
+    { id: 25, emoji: '🥪', name: 'Sanduíche Natural',     sub: 'Frango',              boxes: 0 },
+  );
+  }
+
 // Estado local (espelho do Firebase)
 const items = defaults.map(i => ({ ...i }));
  
