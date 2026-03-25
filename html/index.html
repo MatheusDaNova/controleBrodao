@@ -431,11 +431,25 @@ const defaults = [
   { id: 7,  emoji: '🌿', name: 'Pastel de Forno',  sub: 'Queijo minas e espinafre',        boxes: 1  },
   { id: 8,  emoji: '🍗', name: 'Pastel de Forno',  sub: 'Frango',  boxes: 1  },
   { id: 9,  emoji: '🥟', name: 'Coxinha',         sub: 'Frango com catupiry',   boxes: 5 },
-  { id: 10,  emoji: '🥐', name: 'Croissant',      sub: 'Chocolate',              boxes: 4  },
+  { id: 10,  emoji: '', name: 'Coxinha',      sub: 'SEM',   boxes: 0},
   { id: 11, emoji: '🍕', name: 'Calabresa',      sub: '',   boxes: 4  },
   { id: 12, emoji: '🍡', name: 'Napolitano',      sub: '',   boxes: 1},
   { id: 13, emoji: '🌭', name: 'Dogão',      sub: '',   boxes: 2  },
   { id: 14, emoji: '🥩', name: 'Costela',      sub: '',   boxes: 5 },
+  { id: 15, emoji: '🍇', name: 'Açaí',      sub: '',   boxes: 0 },
+  { id: 16, emoji: '🍨', name: 'Sorvete',      sub: '',   boxes: 0 },
+  { id: 17, emoji: '', name: 'Kibe',      sub: '',   boxes: 0 },
+  { id: 18, emoji: '🥐', name: 'Croissant',      sub: 'Chocolate', boxes: 1 },
+  { id: 19, emoji: '🌕', name: 'Pão de queijo',      sub: '', boxes: 1},
+
+  ( loja === 'aeroport' ? [
+    { id: 15, emoji: '🥔', name: 'Pão de Batata',         sub: '',                    boxes: 0 },
+    { id: 16, emoji: '🥧', name: 'Empadão',               sub: '',                    boxes: 0 },
+    { id: 17, emoji: '🍬', name: 'Docinho',               sub: '',                    boxes: 0 },
+    { id: 18, emoji: '🎂', name: 'Bolo',                  sub: '',                    boxes: 0 },
+    { id: 19, emoji: '🥪', name: 'Sanduíche Natural',     sub: '',                    boxes: 0 },
+    { id: 20, emoji: '🥪', name: 'Sanduíche Natural',     sub: 'Frango',              boxes: 0 },
+  ] : []),
 ];
  
 // Estado local (espelho do Firebase)
