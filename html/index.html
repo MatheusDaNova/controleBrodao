@@ -332,7 +332,7 @@
     <img src="img/logoBrodao.png" class="logo-brodao">
     <div class="logo-text">
       <h1>Estoque</h1>
-      <p>Controle de salgados · Brodão</p>
+      <p id="subtitulo-loja">Controle de salgados · Brodão</p>
     </div>
   </div>
   <div class="summary-bar">
@@ -374,10 +374,28 @@ const firebaseConfig = {
   projectId: "estoque-brodao",
 };
 // ============================================================
- 
+
+const nomes = {
+    'travessa': 'Loja Travessa',
+    'flamengo':   'Loja Flamengo',
+    'centro':    'Loja Centro',
+    'aeroporto':     'Aeroporto',
+  };
+
+// ✅ LÊ O PARÂMETRO ?loja= DA URL
+const params = new URLSearchParams(window.location.search);
+const loja = params.get('loja') || 'Brodão'; // fallback se não tiver parâmetro
+
+const nomeLoja = nomes[loja] || loja;
+
+// ✅ ATUALIZA O TÍTULO DA PÁGINA COM O NOME DA LOJA
+document.getElementById('subtitulo-loja').textContent = `Controle de salgados · ${nomeLoja}`;
+  document.title = `Estoque · ${nomeLoja}`;
+
 const app = initializeApp(firebaseConfig);
 const db  = getDatabase(app);
-const estoqueRef = ref(db, 'estoque');
+
+const estoqueRef = ref(db, `estoque/${loja}`);
  
 const PER_BOX = 20;
  
