@@ -54,8 +54,26 @@
     flex-wrap: wrap;
   }
 
-  .logo-area { display: flex; }
+  .logo-area { display: flex; align-items: center; }
   .logo-text { margin: auto; }
+
+  .fabrica-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: rgba(245,166,35,0.12);
+    border: 1px solid rgba(245,166,35,0.35);
+    color: var(--accent);
+    font-size: 1.2rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.4rem 0.9rem;
+    border-radius: 20px;
+    margin-left: 0.8rem;
+    white-space: nowrap;
+    height: 4vh;
+  }
 
   .logo-area h1 {
     font-family: 'Bebas Neue', sans-serif;
@@ -301,6 +319,132 @@
     padding-bottom: 1.5rem;
   }
 
+  /* Botão de quantidade customizada */
+  .ctrl-btn.custom {
+    border-left: 1px solid var(--border);
+    font-size: 1rem;
+    color: var(--accent);
+    width: 44px;
+  }
+  .ctrl-btn.custom:hover { color: var(--accent); background: rgba(245,166,35,0.08); }
+
+  /* Modal overlay */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.65);
+    z-index: 1100;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 1.6rem;
+    width: 90%;
+    max-width: 320px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    box-shadow: 0 16px 48px rgba(0,0,0,0.6);
+    animation: modalIn 0.2s ease;
+  }
+  @keyframes modalIn {
+    from { transform: scale(0.93); opacity: 0; }
+    to   { transform: scale(1);    opacity: 1; }
+  }
+
+  .modal-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.2rem;
+    letter-spacing: 0.08em;
+    color: var(--text);
+  }
+  .modal-title span { color: var(--accent); }
+
+  .modal-subtitle {
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-top: -0.5rem;
+  }
+
+  .modal-input-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .modal-input {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    text-align: center;
+    padding: 0.5rem;
+    outline: none;
+    width: 100%;
+    -moz-appearance: textfield;
+  }
+  .modal-input::-webkit-outer-spin-button,
+  .modal-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .modal-input:focus { border-color: rgba(245,166,35,0.5); }
+
+  .modal-stepper {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+  .modal-step-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 0.85rem;
+    width: 36px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .modal-step-btn:hover { background: rgba(255,255,255,0.07); }
+
+  .modal-actions {
+    display: flex;
+    gap: 0.6rem;
+  }
+
+  .modal-btn {
+    flex: 1;
+    padding: 0.7rem;
+    border-radius: 10px;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .modal-btn:hover { opacity: 0.85; }
+  .modal-btn.cancel { background: var(--surface); border: 1px solid var(--border); color: var(--muted); }
+  .modal-btn.add    { background: var(--accent);  color: #1a1915; }
+  .modal-btn.remove { background: rgba(232,67,26,0.15); border: 1px solid rgba(232,67,26,0.3); color: var(--red); }
+
+  .modal-btn-row {
+    display: flex;
+    gap: 0.6rem;
+  }
+
   @media (max-width: 500px) {
     header { padding: 1.4rem 1.2rem 0; }
     main   { padding: 0 1.2rem; margin-top: 2rem; }
@@ -314,7 +458,7 @@
   <div class="logo-area">
     <img src="img/logoBrodao.png" class="logo-brodao">
     <div class="logo-text">
-      <h1>Estoque</h1>
+      <h1>Estoque <span class="fabrica-badge">🏭 Fábrica</span></h1>
       <p>Controle de salgados · Fábrica</p>
     </div>
   </div>
@@ -342,6 +486,30 @@
 <footer>20 salgados por caixa · atualizado em tempo real</footer>
 
 <div id="toast"></div>
+
+<!-- Modal de quantidade customizada -->
+<div class="modal-overlay" id="qty-modal">
+  <div class="modal">
+    <div>
+      <div class="modal-title" id="modal-title">Quantidade</div>
+      <div class="modal-subtitle" id="modal-subtitle">caixas</div>
+    </div>
+    <div class="modal-input-row">
+      <input class="modal-input" type="number" id="modal-input" min="1" value="1">
+      <div class="modal-stepper">
+        <button class="modal-step-btn" id="modal-step-up">▲</button>
+        <button class="modal-step-btn" id="modal-step-dn">▼</button>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn cancel" id="modal-cancel">Cancelar</button>
+      <div class="modal-btn-row" style="flex:2;display:flex;gap:0.6rem;">
+        <button class="modal-btn remove" id="modal-remove">− Remover</button>
+        <button class="modal-btn add"    id="modal-add">+ Adicionar</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -378,6 +546,11 @@ const defaults = [
   { id: 12, emoji: '🍡', name: 'Napolitano',        sub: '',                           boxes: 0 },
   { id: 13, emoji: '🌭', name: 'Dogão',             sub: '',                           boxes: 0 },
   { id: 14, emoji: '🥩', name: 'Costela',           sub: '',                           boxes: 0 },
+  { id: 15, emoji: '🍇', name: 'Açaí',              sub: '',                           boxes: 0 },
+  { id: 16, emoji: '🍨', name: 'Sorvete',           sub: '',                           boxes: 0 },
+  { id: 17, emoji: '',   name: 'Kibe',              sub: '',                           boxes: 0 },
+  { id: 18, emoji: '🥐', name: 'Croissant',         sub: 'Chocolate',                  boxes: 0 },
+  { id: 19, emoji: '🌕', name: 'Pão de queijo',     sub: '',                           boxes: 0 },
 ];
 
 const items = defaults.map(i => ({ ...i }));
@@ -442,6 +615,7 @@ function render() {
         <button class="ctrl-btn minus" onclick="change(${item.id}, -1)" ${item.boxes === 0 ? 'disabled' : ''} title="Remover caixa">−</button>
         <span class="ctrl-label">caixas</span>
         <button class="ctrl-btn plus" onclick="change(${item.id}, +1)" title="Adicionar caixa">+</button>
+        <button class="ctrl-btn custom" onclick="openQtyModal(${item.id})" title="Quantidade personalizada">⊞</button>
       </div>
     `;
     grid.appendChild(div);
@@ -489,12 +663,59 @@ function updateSummary() {
 let toastTimer;
 function showToast(icon, name, delta) {
   const el = document.getElementById('toast');
-  const action = delta > 0 ? 'adicionada ao' : 'removida do';
-  el.innerHTML = `<span class="toast-icon">${icon}</span> 1 caixa ${action} estoque de <strong>${name}</strong>`;
+  const abs = Math.abs(delta);
+  const caixas = abs === 1 ? '1 caixa' : `${abs} caixas`;
+  const action = delta > 0 ? 'adicionadas ao' : 'removidas do';
+  el.innerHTML = `<span class="toast-icon">${icon}</span> ${caixas} ${action} estoque de <strong>${name}</strong>`;
   el.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
 }
+
+// Modal de quantidade personalizada
+let modalItemId = null;
+const modal      = document.getElementById('qty-modal');
+const modalInput = document.getElementById('modal-input');
+
+window.openQtyModal = function(id) {
+  const item = items.find(i => i.id === id);
+  if (!item) return;
+  modalItemId = id;
+  document.getElementById('modal-title').textContent = item.name + (item.sub ? ` · ${item.sub}` : '');
+  document.getElementById('modal-subtitle').textContent = `Estoque atual: ${item.boxes} caixas`;
+  modalInput.value = 1;
+  modal.classList.add('open');
+  setTimeout(() => modalInput.focus(), 100);
+};
+
+document.getElementById('modal-cancel').addEventListener('click', () => modal.classList.remove('open'));
+modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('open'); });
+
+document.getElementById('modal-step-up').addEventListener('click', () => {
+  modalInput.value = Math.max(1, (parseInt(modalInput.value) || 0) + 1);
+});
+document.getElementById('modal-step-dn').addEventListener('click', () => {
+  modalInput.value = Math.max(1, (parseInt(modalInput.value) || 2) - 1);
+});
+
+document.getElementById('modal-add').addEventListener('click', () => {
+  const qty = parseInt(modalInput.value) || 0;
+  if (qty < 1) return;
+  change(modalItemId, qty);
+  modal.classList.remove('open');
+});
+
+document.getElementById('modal-remove').addEventListener('click', () => {
+  const qty = parseInt(modalInput.value) || 0;
+  if (qty < 1) return;
+  change(modalItemId, -qty);
+  modal.classList.remove('open');
+});
+
+modalInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('modal-add').click();
+  if (e.key === 'Escape') modal.classList.remove('open');
+});
 </script>
 
 <script>
