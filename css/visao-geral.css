@@ -234,6 +234,35 @@
       line-height: 1;
     }
 
+   .fabrica-row {
+  display: flex;
+  margin-bottom: 1.5rem;
+}
+
+.btn-fabrica {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1rem;
+  letter-spacing: .1em;
+  color: var(--text);
+  background: var(--brand);
+  text-decoration: none;
+  padding: .55rem 1.4rem;
+  border-radius: 8px;
+  transition: background .15s, transform .1s;
+}
+
+.btn-fabrica:hover { background: #a02848; transform: translateY(-1px); }
+.btn-fabrica:active { transform: translateY(0); }
+ 
+    .btn-fabrica:hover {
+      background: #a02848;
+      transform: translateY(-1px);
+    }
+ 
+    .btn-fabrica:active {
+      transform: translateY(0);
+    }
+
     /* Barra de status (ok/baixo/esgotado) */
     .sc-status-bar {
       display: flex;

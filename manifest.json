@@ -2,7 +2,7 @@
   "name": "Estoque · Brodão",
   "short_name": "Estoque",
   "description": "Controle de estoque de salgados - Lanchonete Brodão",
-  "start_url": "/fabrica.html",
+  "start_url": "/visao-geral.html",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#811f3b",
