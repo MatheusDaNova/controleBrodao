@@ -1,0 +1,434 @@
+  :root {
+    --bg: #811f3b;
+    --surface: #1a1915;
+    --card: #211f1a;
+    --border: #2e2b24;
+    --accent: #f5a623;
+    --accent2: #e8431a;
+    --text: #f0ebe0;
+    --muted: #7a7060;
+    --green: #5cb85c;
+    --red: #e8431a;
+    --green-logo: #B4BE4B;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse at 10% 0%, rgba(245,166,35,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse at 90% 100%, rgba(232,67,26,0.06) 0%, transparent 60%);
+  }
+
+  header {
+    padding: 2rem 2rem 0;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .logo-area { display: flex; align-items: center; }
+  .logo-text { margin: auto; }
+
+  .fabrica-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: rgba(245,166,35,0.12);
+    border: 1px solid rgba(245,166,35,0.35);
+    color: var(--accent);
+    font-size: 1.2rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.4rem 0.9rem;
+    border-radius: 20px;
+    margin-left: 0.8rem;
+    white-space: nowrap;
+    height: 4vh;
+  }
+
+  .logo-area h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.4rem, 6vw, 3rem);
+    letter-spacing: 0.04em;
+    line-height: 1;
+    color: var(--green-logo);
+    margin: auto;
+  }
+
+  .logo-area p {
+    color: var(--muted);
+    font-size: 0.85rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-top: 0.2rem;
+    margin: auto;
+  }
+
+  .summary-bar {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .summary-chip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.6rem 1.1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 90px;
+  }
+
+  .summary-chip .label {
+    font-size: 0.68rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .summary-chip .value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.7rem;
+    color: var(--accent);
+    line-height: 1.1;
+  }
+
+  .summary-chip .value.total-unit { color: var(--text); }
+
+  main {
+    max-width: 1200px;
+    margin: 2.5rem auto 4rem;
+    padding: 0 2rem;
+  }
+
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 0.16em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.2rem;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.4rem 1.4rem 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    transition: border-color 0.2s, transform 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .card:hover { border-color: rgba(245,166,35,0.35); transform: translateY(-2px); }
+  .card:hover::before { opacity: 1; }
+
+  .card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .card-emoji { font-size: 2rem; line-height: 1; flex-shrink: 0; }
+
+  .card-name { font-size: 1rem; font-weight: 600; color: var(--text); line-height: 1.2; }
+
+  .card-sub {
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-top: 0.15rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .badge {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.55rem;
+    border-radius: 20px;
+    flex-shrink: 0;
+  }
+
+  .badge-ok    { background: rgba(92,184,92,0.15);  color: var(--green);  border: 1px solid rgba(92,184,92,0.3); }
+  .badge-low   { background: rgba(245,166,35,0.15); color: var(--accent); border: 1px solid rgba(245,166,35,0.3); }
+  .badge-empty { background: rgba(232,67,26,0.15);  color: var(--red);    border: 1px solid rgba(232,67,26,0.3); }
+
+  .card-counts { display: flex; gap: 0.7rem; }
+
+  .count-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.55rem 0.8rem;
+    flex: 1;
+    text-align: center;
+  }
+
+  .count-block .cb-label {
+    font-size: 0.63rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+  }
+
+  .count-block .cb-value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    line-height: 1.1;
+    color: var(--text);
+  }
+
+  .count-block .cb-value.highlight { color: var(--accent); }
+
+  .card-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .ctrl-btn {
+    background: none;
+    border: none;
+    color: var(--text);
+    font-size: 1.3rem;
+    width: 48px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    flex-shrink: 0;
+  }
+
+  .logo-brodao { max-height: 15vh; margin: auto; }
+
+  .ctrl-btn:hover { background: rgba(255,255,255,0.06); }
+  .ctrl-btn.minus:hover { color: var(--red); }
+  .ctrl-btn.plus:hover  { color: var(--accent); }
+  .ctrl-btn:active      { transform: scale(0.92); }
+  .ctrl-btn:disabled    { opacity: 0.3; cursor: not-allowed; transform: none; }
+
+  .ctrl-label {
+    flex: 1;
+    text-align: center;
+    font-size: 0.72rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    user-select: none;
+  }
+
+  @keyframes pop {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.08); }
+    100% { transform: scale(1); }
+  }
+  .pop { animation: pop 0.2s ease; }
+
+  #toast {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0.8rem 1.2rem;
+    font-size: 0.85rem;
+    color: var(--text);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+    transform: translateY(80px);
+    opacity: 0;
+    transition: transform 0.3s, opacity 0.3s;
+    z-index: 999;
+    max-width: 260px;
+  }
+  #toast.show { transform: translateY(0); opacity: 1; }
+
+  footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.75rem;
+    padding-bottom: 1.5rem;
+  }
+
+  /* Botão de quantidade customizada */
+  .ctrl-btn.custom {
+    border-left: 1px solid var(--border);
+    font-size: 1rem;
+    color: var(--accent);
+    width: 44px;
+  }
+  .ctrl-btn.custom:hover { color: var(--accent); background: rgba(245,166,35,0.08); }
+
+  /* Modal overlay */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.65);
+    z-index: 1100;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 1.6rem;
+    width: 90%;
+    max-width: 320px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    box-shadow: 0 16px 48px rgba(0,0,0,0.6);
+    animation: modalIn 0.2s ease;
+  }
+  @keyframes modalIn {
+    from { transform: scale(0.93); opacity: 0; }
+    to   { transform: scale(1);    opacity: 1; }
+  }
+
+  .modal-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.2rem;
+    letter-spacing: 0.08em;
+    color: var(--text);
+    margin-bottom: 0.8rem;
+  }
+  .modal-title span { color: var(--accent); }
+
+  .modal-subtitle {
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-top: -0.5rem;
+  }
+
+  .modal-input-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .modal-input {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    text-align: center;
+    padding: 0.5rem;
+    outline: none;
+    width: 100%;
+    -moz-appearance: textfield;
+  }
+  .modal-input::-webkit-outer-spin-button,
+  .modal-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .modal-input:focus { border-color: rgba(245,166,35,0.5); }
+
+  .modal-stepper {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+  .modal-step-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 0.85rem;
+    width: 36px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .modal-step-btn:hover { background: rgba(255,255,255,0.07); }
+
+  .modal-actions {
+    display: flex;
+    gap: 0.6rem;
+  }
+
+  .modal-btn {
+    flex: 1;
+    padding: 0.7rem;
+    border-radius: 10px;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .modal-btn:hover { opacity: 0.85; }
+  .modal-btn.cancel { background: var(--surface); border: 1px solid var(--border); color: var(--muted); }
+  .modal-btn.add    { background: var(--accent);  color: #1a1915; }
+  .modal-btn.remove { background: rgba(232,67,26,0.15); border: 1px solid rgba(232,67,26,0.3); color: var(--red); }
+
+  .modal-btn-row {
+    display: flex;
+    gap: 0.6rem;
+  }
+
+  @media (max-width: 500px) {
+    header { padding: 1.4rem 1.2rem 0; }
+    main   { padding: 0 1.2rem; margin-top: 2rem; }
+    .grid  { grid-template-columns: 1fr; }
+  }

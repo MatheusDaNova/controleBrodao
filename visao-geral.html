@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Visão Geral · Estoque Brodão</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="./css/visao-geral.css"/>
+</head>
+<body>
+
+<!-- Loading -->
+<div id="loading-overlay">
+  <div class="loader-logo">Brodão</div>
+  <div class="loader-bar"></div>
+</div>
+
+<!-- Header -->
+<header>
+  <div class="header-left">
+    <h1>VISÃO <span>GERAL</span></h1>
+    <p>Estoque · Todas as unidades</p>
+  </div>
+  <img src="img/logoBrodao.png" class="logo-brodao">
+  <div class="live-clock">
+    <div class="live-dot"></div>
+    <span id="clock">--:--:--</span>
+  </div>
+</header>
+
+<main>
+  <!-- Barra de resumo global -->
+  <div class="global-bar" id="global-bar">
+    <div class="gb-cell">
+      <span class="label">Total caixas</span>
+      <span class="value brand" id="g-boxes">—</span>
+    </div>
+    <div class="gb-cell">
+      <span class="label">Total salgados</span>
+      <span class="value" id="g-units">—</span>
+    </div>
+    <div class="gb-cell">
+      <span class="label">Itens OK</span>
+      <span class="value ok" id="g-ok">—</span>
+    </div>
+    <div class="gb-cell">
+      <span class="label">Esgotados</span>
+      <span class="value empty" id="g-empty">—</span>
+    </div>
+    <div class="gb-cell">
+      <span class="label">Unidades ativas</span>
+      <span class="value" id="g-stores">—</span>
+    </div>
+  </div>
+
+  <!-- Grid de lojas -->
+  <div class="stores-grid" id="stores-grid"></div>
+</main>
+
+<!-- =====================================================================
+     Firebase SDK
+====================================================================== -->
+<script type="module" src="./script/visao-geral.js"></script>
+
+</body>
+</html>
