@@ -11,6 +11,7 @@ import {
   ref,
   onValue,
   update,
+  push,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 // ============================================================
@@ -35,13 +36,26 @@ const estoqueRef = ref(db, `estoque/${loja}`);
 
 /**
  * Salva a quantidade de caixas de um item no Firebase.
+ * Também grava _updatedAt com o horário local (Brasil) da última modificação.
  * @param {number|string} id    - ID do item
  * @param {number}        boxes - Nova quantidade de caixas
  */
 export function saveItem(id, boxes) {
+  // Horário local formatado: "DD/MM/YYYY HH:MM:SS"
+  const agora = new Date();
+  const updatedAt = agora.toLocaleString("pt-BR", {
+    timeZone: "America/Sao_Paulo",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+
   update(estoqueRef, {
     [id]: boxes,
-    _updatedAt: new Date().toISOString(), // timestamp gravado pelo funcionário
+    _updatedAt: updatedAt, // ex: "04/05/2026, 14:32:07"
   });
 }
 
@@ -55,4 +69,9 @@ export function onEstoqueChange(callback) {
     const data = snapshot.val() || {};
     callback(data);
   });
+}
+
+export function savePedido(pedido) {
+  const pedidosRef = ref(db, `pedidos/${loja}`);
+  return push(pedidosRef, pedido);
 }

@@ -112,6 +112,17 @@ function setLoading(on) {
 }
 setLoading(true);
 
+// ── Atualiza o rodapé com o horário da última modificação ─────
+function updateFooterTimestamp(updatedAt) {
+  const el = document.getElementById("footer-updated-at");
+  if (!el) return;
+  if (updatedAt) {
+    el.textContent = `Última modificação: ${updatedAt}`;
+  } else {
+    el.textContent = "";
+  }
+}
+
 // ── Escuta mudanças em tempo real vindas do Firebase ──────────
 onEstoqueChange((data) => {
   items.forEach((item) => {
@@ -119,6 +130,7 @@ onEstoqueChange((data) => {
       item.boxes = data[item.id];
     }
   });
+  updateFooterTimestamp(data._updatedAt || null);
   render();
   setLoading(false);
 });
@@ -230,3 +242,166 @@ function showToast(icon, name, delta) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => el.classList.remove("show"), 2500);
 }
+
+// ── Pedido ─────────────────────────────────────────────────────
+import { savePedido } from "./db.js";
+
+// Injeta o botão "Fazer Pedido" no header summary
+(function injectPedidoBtn() {
+  const summaryBar = document.querySelector(".summary-bar");
+  if (!summaryBar) return;
+  const btn = document.createElement("button");
+  btn.id = "btn-fazer-pedido";
+  btn.className = "btn-pedido";
+  btn.innerHTML = `<span>📋</span> Fazer Pedido`;
+  btn.onclick = () => openPedidoModal();
+  summaryBar.appendChild(btn);
+})();
+
+// Injeta o modal de pedido no body
+(function injectPedidoModal() {
+  const modal = document.createElement("div");
+  modal.id = "pedido-modal-overlay";
+  modal.className = "modal-overlay";
+  modal.innerHTML = `
+    <div class="modal pedido-modal">
+      <div class="pedido-modal-header">
+        <div>
+          <div class="modal-title">📋 FAZER <span>PEDIDO</span></div>
+          <div class="modal-subtitle" id="pedido-loja-label"></div>
+        </div>
+        <button class="pedido-close-btn" onclick="closePedidoModal()">✕</button>
+      </div>
+
+      <div class="pedido-alert" id="pedido-alert-ok" style="display:none">
+        <span>✅</span> Todos os itens estão com estoque OK!
+      </div>
+
+      <div id="pedido-items-list" class="pedido-items-list"></div>
+
+      <div class="pedido-footer-note">
+        Edite as quantidades de caixas a solicitar por item.
+      </div>
+
+      <div class="modal-actions">
+        <button class="modal-btn cancel" onclick="closePedidoModal()">Cancelar</button>
+        <button class="modal-btn add" id="btn-confirmar-pedido" onclick="confirmarPedido()">Enviar Pedido</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) closePedidoModal();
+  });
+})();
+
+// Estado temporário do pedido em edição
+let pedidoQtds = {};
+
+window.openPedidoModal = function openPedidoModal() {
+  // Itens baixos ou esgotados
+  const baixos = items.filter((i) => i.boxes <= 2);
+  pedidoQtds = {};
+
+  const overlay = document.getElementById("pedido-modal-overlay");
+  const listEl = document.getElementById("pedido-items-list");
+  const alertEl = document.getElementById("pedido-alert-ok");
+  const lojaLabel = document.getElementById("pedido-loja-label");
+
+  lojaLabel.textContent = `${nomeLoja} · ${baixos.length} item(s) com atenção`;
+
+  if (baixos.length === 0) {
+    alertEl.style.display = "flex";
+    listEl.innerHTML = "";
+    listEl.style.display = "none";
+    document.getElementById("btn-confirmar-pedido").disabled = true;
+  } else {
+    alertEl.style.display = "none";
+    listEl.style.display = "flex";
+    document.getElementById("btn-confirmar-pedido").disabled = false;
+
+    // Sugestão automática: esgotado → 5 caixas, baixo → 3 caixas
+    baixos.forEach((item) => {
+      pedidoQtds[item.id] = item.boxes === 0 ? 5 : 3;
+    });
+
+    listEl.innerHTML = "";
+    baixos.forEach((item) => {
+      const [, badgeLabel] = getBadge(item.boxes);
+      const badgeCls = item.boxes === 0 ? "badge-empty" : "badge-low";
+      const row = document.createElement("div");
+      row.className = "pedido-item-row";
+      row.innerHTML = `
+        <div class="pedido-item-info">
+          <span class="pedido-item-emoji">${item.emoji}</span>
+          <div class="pedido-item-text">
+            <span class="pedido-item-name">${item.name}</span>
+            ${item.sub ? `<span class="pedido-item-sub">${item.sub}</span>` : ""}
+          </div>
+          <span class="badge ${badgeCls}" style="margin-left:auto;flex-shrink:0">${item.boxes} cx · ${badgeLabel}</span>
+        </div>
+        <div class="pedido-qty-row">
+          <span class="pedido-qty-label">Solicitar:</span>
+          <div class="pedido-qty-ctrl">
+            <button class="ctrl-btn minus" onclick="changePedidoQty(${item.id}, -1)" title="Menos">−</button>
+            <span class="pedido-qty-val" id="pqty-${item.id}">${pedidoQtds[item.id]}</span>
+            <button class="ctrl-btn plus" onclick="changePedidoQty(${item.id}, +1)" title="Mais">+</button>
+          </div>
+          <span class="pedido-qty-unit">caixas</span>
+        </div>
+      `;
+      listEl.appendChild(row);
+    });
+  }
+
+  overlay.classList.add("open");
+};
+
+window.closePedidoModal = function closePedidoModal() {
+  document.getElementById("pedido-modal-overlay").classList.remove("open");
+};
+
+window.changePedidoQty = function changePedidoQty(id, delta) {
+  const current = pedidoQtds[id] ?? 0;
+  const next = Math.max(0, current + delta);
+  pedidoQtds[id] = next;
+  const el = document.getElementById(`pqty-${id}`);
+  if (el) el.textContent = next;
+};
+
+window.confirmarPedido = async function confirmarPedido() {
+  const itensComQty = Object.entries(pedidoQtds)
+    .filter(([, qty]) => qty > 0)
+    .map(([id, qty]) => {
+      const item = items.find((i) => i.id === Number(id));
+      return {
+        id: Number(id),
+        qty,
+        name: item?.name || "",
+        sub: item?.sub || "",
+        emoji: item?.emoji || "",
+      };
+    });
+
+  if (itensComQty.length === 0) {
+    showToast("⚠️", "Nenhum item com quantidade > 0", 0);
+    return;
+  }
+
+  const pedido = {
+    loja,
+    nomeLoja,
+    itens: itensComQty,
+    timestamp: Date.now(),
+    status: "pendente",
+  };
+
+  try {
+    await savePedido(pedido);
+    closePedidoModal();
+    showToast("📋", `Pedido enviado para ${nomeLoja}`, 1);
+  } catch (e) {
+    console.error(e);
+    showToast("❌", "Erro ao enviar pedido", -1);
+  }
+};

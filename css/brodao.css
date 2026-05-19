@@ -432,3 +432,167 @@
     main   { padding: 0 1.2rem; margin-top: 2rem; }
     .grid  { grid-template-columns: 1fr; }
   }
+
+  /* ── Botão Fazer Pedido ──────────────────────────────────── */
+  .btn-pedido {
+    background: none;
+    border: 1px solid rgba(245,166,35,0.4);
+    border-radius: 10px;
+    padding: 0.6rem 1.1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.15rem;
+    min-width: 90px;
+    cursor: pointer;
+    color: var(--accent);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    transition: background 0.15s, border-color 0.15s, transform 0.1s;
+    white-space: nowrap;
+  }
+  .btn-pedido span { font-size: 1.2rem; }
+  .btn-pedido:hover { background: rgba(245,166,35,0.1); border-color: rgba(245,166,35,0.7); transform: translateY(-1px); }
+  .btn-pedido:active { transform: translateY(0); }
+ 
+  /* ── Modal de Pedido ─────────────────────────────────────── */
+  .pedido-modal {
+    width: 92%;
+    max-width: 460px;
+    max-height: 88vh;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+ 
+  .pedido-modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 1.4rem 1.4rem 1rem;
+    border-bottom: 1px solid var(--border);
+    gap: 1rem;
+  }
+ 
+  .pedido-close-btn {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--muted);
+    font-size: 0.9rem;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.15s, color 0.15s;
+  }
+  .pedido-close-btn:hover { background: rgba(255,255,255,0.07); color: var(--text); }
+ 
+  .pedido-alert {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin: 1.2rem 1.4rem;
+    padding: 0.8rem 1rem;
+    background: rgba(92,184,92,0.1);
+    border: 1px solid rgba(92,184,92,0.25);
+    border-radius: 10px;
+    font-size: 0.85rem;
+    color: var(--green);
+  }
+ 
+  .pedido-items-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.8rem 1.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+  .pedido-items-list::-webkit-scrollbar { width: 3px; }
+  .pedido-items-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+ 
+  .pedido-item-row {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0.9rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    transition: border-color 0.15s;
+  }
+  .pedido-item-row:hover { border-color: rgba(245,166,35,0.3); }
+ 
+  .pedido-item-info {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+ 
+  .pedido-item-emoji { font-size: 1.5rem; flex-shrink: 0; }
+ 
+  .pedido-item-text { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .pedido-item-name { font-size: 0.88rem; font-weight: 600; color: var(--text); }
+  .pedido-item-sub  { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; }
+ 
+  .pedido-qty-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+ 
+  .pedido-qty-label {
+    font-size: 0.72rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    min-width: 56px;
+  }
+ 
+  .pedido-qty-ctrl {
+    display: flex;
+    align-items: center;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .pedido-qty-ctrl .ctrl-btn { width: 38px; height: 36px; font-size: 1.1rem; }
+ 
+  .pedido-qty-val {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    min-width: 36px;
+    text-align: center;
+    color: var(--accent);
+    line-height: 1;
+    padding: 0 0.2rem;
+  }
+ 
+  .pedido-qty-unit {
+    font-size: 0.72rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+ 
+  .pedido-footer-note {
+    padding: 0.7rem 1.4rem;
+    font-size: 0.7rem;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+    letter-spacing: 0.04em;
+  }
+ 
+  .pedido-modal .modal-actions {
+    padding: 0.9rem 1.4rem;
+    border-top: 1px solid var(--border);
+  }

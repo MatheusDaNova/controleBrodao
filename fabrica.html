@@ -18,6 +18,47 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 
+<style>
+  /* ── Indicador de lançamento pendente ── */
+  .pending-indicator {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: rgba(232, 168, 56, 0.15);
+    border: 1px solid rgba(232, 168, 56, 0.4);
+    border-radius: 999px;
+    padding: 0.2rem 0.55rem;
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: #e8a838;
+    opacity: 0;
+    transform: scale(0.85);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    pointer-events: none;
+  }
+  .pending-indicator.visible {
+    opacity: 1;
+    transform: scale(1);
+  }
+  .pending-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #e8a838;
+    animation: pulse-dot 1s ease-in-out infinite;
+  }
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.4; transform: scale(0.7); }
+  }
+
+  /* Card precisa de position:relative para o indicador funcionar */
+  .card { position: relative; }
+</style>
+
 </head>
 <body>
 
@@ -80,7 +121,14 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import {
+  getDatabase,
+  ref,
+  onValue,
+  update,
+  push,
+  get,
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD5WD6H5KDr3cglKW71JRqdgtnKyypwKtc",
@@ -91,6 +139,9 @@ const firebaseConfig = {
 
 // Fábrica usa seu próprio nó no Firebase: estoque/fabrica
 const LOJA = 'fabrica';
+
+// Quanto tempo aguardar antes de confirmar o lançamento (ms)
+const DEBOUNCE_MS = 2 * 60 * 1000; // 2 minutos
 
 const app = initializeApp(firebaseConfig);
 const db  = getDatabase(app);
@@ -107,15 +158,138 @@ const defaults = [
   { id: 6,  emoji: '🍖', name: 'Carne-Seca',        sub: '',                           boxes: 0 },
   { id: 7,  emoji: '🌿', name: 'Pastel de Forno',   sub: 'Queijo minas e espinafre',   boxes: 0 },
   { id: 8,  emoji: '🍗', name: 'Pastel de Forno',   sub: 'Frango',                     boxes: 0 },
-  { id: 9,  emoji: '🥟', name: 'Coxinha',           sub: 'Frango com catupiry',        boxes: 0 },
-  { id: 10, emoji: '',   name: 'Coxinha',           sub: 'SEM',                        boxes: 0 },
-  { id: 11, emoji: '🍕', name: 'Calabresa',         sub: '',                           boxes: 0 },
-  { id: 12, emoji: '🍡', name: 'Napolitano',        sub: '',                           boxes: 0 },
-  { id: 13, emoji: '🌭', name: 'Dogão',             sub: '',                           boxes: 0 },
-  { id: 14, emoji: '🥩', name: 'Costela',           sub: '',                           boxes: 0 },
+  { id: 9,  emoji: '🍕', name: 'Calabresa',         sub: '',                           boxes: 0 },
+  { id: 10, emoji: '🍡', name: 'Napolitano',        sub: '',                           boxes: 0 },
+  { id: 11, emoji: '🌭', name: 'Dogão',             sub: '',                           boxes: 0 },
+  { id: 12, emoji: '🥩', name: 'Costela',           sub: '',                           boxes: 0 },
 ];
 
 const items = defaults.map(i => ({ ...i }));
+
+// ── Sistema de lançamento automático no histórico ─────────────────────────────
+//
+// pendingSnapshots: guarda o estado de cada item ANTES das alterações
+// pendingTimers:    guarda o timer (setTimeout) de cada item
+//
+// Fluxo:
+//  1. Usuário altera item X → guardamos o valor anterior (se não havia pendência)
+//  2. Iniciamos (ou reiniciamos) um timer de 2 min para o item X
+//  3. Ao disparar: buscamos o valor ATUAL do item no Firebase
+//  4. Se atual > anterior → produção (registra em lancamentos)
+//  5. Se atual < anterior → saída da fábrica (registra em lancamentos)
+//  6. Se igual → nada a registrar (foi desfeito ou erro)
+// ────────────────────────────────────────────────────────────────────────────
+
+const pendingSnapshots = {}; // { [itemId]: boxesAntes }
+const pendingTimers    = {}; // { [itemId]: timerId }
+
+function scheduleHistoricoCheck(item) {
+  // Guarda o snapshot ANTERIOR (só na primeira mudança do ciclo)
+  if (!(item.id in pendingSnapshots)) {
+    pendingSnapshots[item.id] = item.boxes;
+  }
+
+  // Cancela timer anterior para este item (reinicia a janela de 2 min)
+  if (pendingTimers[item.id]) {
+    clearTimeout(pendingTimers[item.id]);
+  }
+
+  // Atualiza indicador visual de pendência no card
+  updatePendingIndicator(item.id, true);
+
+  // Agenda a confirmação após DEBOUNCE_MS
+  pendingTimers[item.id] = setTimeout(() => {
+    confirmAndRegister(item.id);
+  }, DEBOUNCE_MS);
+}
+
+async function confirmAndRegister(itemId) {
+  const boxesAntes = pendingSnapshots[itemId];
+  delete pendingSnapshots[itemId];
+  delete pendingTimers[itemId];
+
+  // Remove indicador visual
+  updatePendingIndicator(itemId, false);
+
+  // Lê o valor ATUAL no Firebase para confirmar a alteração
+  try {
+    const snap = await get(ref(db, `estoque/${LOJA}/${itemId}`));
+    const boxesAgora = snap.exists() ? (snap.val() ?? 0) : 0;
+    const delta = boxesAgora - boxesAntes;
+
+    if (delta === 0) {
+      // Valor voltou ao mesmo → não registra nada
+      return;
+    }
+
+    const itemInfo = items.find(i => i.id === itemId);
+    if (!itemInfo) return;
+
+    const tipo = delta > 0 ? 'producao' : 'saida_fabrica';
+
+    const lancamento = {
+      tipo,
+      timestamp: new Date().toISOString(),
+      fonte: 'fabrica_auto', // diferencia de lançamentos manuais do historico.js
+      itens: [{
+        id:    itemInfo.id,
+        emoji: itemInfo.emoji,
+        name:  itemInfo.name,
+        sub:   itemInfo.sub,
+        qty:   Math.abs(delta),        // sempre positivo
+        boxesAntes,
+        boxesAgora,
+      }],
+    };
+
+    await push(ref(db, 'lancamentos'), lancamento);
+
+    const emoji  = delta > 0 ? '✅' : '📤';
+    const acao   = delta > 0 ? 'Produção registrada' : 'Saída registrada';
+    const qtdStr = Math.abs(delta) === 1 ? '1 caixa' : `${Math.abs(delta)} caixas`;
+    showToast(`${emoji} ${acao}: ${qtdStr} de ${itemInfo.name} → histórico`, 2800);
+
+  } catch (err) {
+    console.error('[historico-auto] Erro ao registrar lançamento:', err);
+  }
+}
+
+function updatePendingIndicator(itemId, visible) {
+  const card = document.getElementById(`card-${itemId}`);
+  if (!card) return;
+  let indicator = card.querySelector('.pending-indicator');
+  if (!indicator) return;
+  if (visible) {
+    indicator.classList.add('visible');
+    // Inicia contagem regressiva no texto
+    startCountdown(indicator, itemId);
+  } else {
+    indicator.classList.remove('visible');
+    if (indicator._countdownInterval) {
+      clearInterval(indicator._countdownInterval);
+      indicator._countdownInterval = null;
+    }
+  }
+}
+
+function startCountdown(indicator, itemId) {
+  if (indicator._countdownInterval) clearInterval(indicator._countdownInterval);
+
+  const startTime = Date.now();
+  const update = () => {
+    const elapsed = Date.now() - startTime;
+    const remaining = Math.max(0, DEBOUNCE_MS - elapsed);
+    const mins = Math.floor(remaining / 60000);
+    const secs = Math.floor((remaining % 60000) / 1000);
+    indicator.querySelector('.pending-text').textContent =
+      `Lançando em ${mins}:${String(secs).padStart(2, '0')}`;
+    if (remaining === 0) clearInterval(indicator._countdownInterval);
+  };
+  update();
+  indicator._countdownInterval = setInterval(update, 1000);
+}
+
+// ── Firebase ────────────────────────────────────────────────────────────────
 
 function saveItem(id, boxes) {
   update(estoqueRef, { [id]: boxes });
@@ -135,6 +309,8 @@ function setLoading(on) {
 }
 setLoading(true);
 
+// ── UI ───────────────────────────────────────────────────────────────────────
+
 function getBadge(boxes) {
   if (boxes === 0) return ['badge-empty', 'Esgotado'];
   if (boxes <= 2)  return ['badge-low',   'Baixo'];
@@ -151,6 +327,10 @@ function render() {
     div.className = 'card';
     div.id = `card-${item.id}`;
     div.innerHTML = `
+      <div class="pending-indicator" id="pending-${item.id}">
+        <span class="pending-dot"></span>
+        <span class="pending-text">Lançando em 2:00</span>
+      </div>
       <div class="card-top">
         <div>
           <div style="display:flex;align-items:center;gap:0.6rem">
@@ -181,6 +361,11 @@ function render() {
       </div>
     `;
     grid.appendChild(div);
+
+    // Restaura indicador se ainda há pendência para este item
+    if (item.id in pendingSnapshots) {
+      updatePendingIndicator(item.id, true);
+    }
   });
   updateSummary();
 }
@@ -211,6 +396,9 @@ window.change = function(id, delta) {
   showToast(delta > 0 ? '📦' : '🗑️', item.name, delta);
   saveItem(item.id, item.boxes);
   updateSummary();
+
+  // Agenda verificação para o histórico (após 2 minutos)
+  scheduleHistoricoCheck(item);
 };
 
 function updateSummary() {
@@ -223,18 +411,30 @@ function updateSummary() {
 }
 
 let toastTimer;
-function showToast(icon, name, delta) {
+function showToast(iconOrMsg, name, delta) {
   const el = document.getElementById('toast');
-  const abs = Math.abs(delta);
+
+  // Chamada com apenas 1 argumento: mensagem livre (usada pelo sistema de histórico)
+  if (name === undefined) {
+    el.innerHTML = iconOrMsg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    const duration = typeof delta === 'number' ? delta : 2500;
+    toastTimer = setTimeout(() => el.classList.remove('show'), duration);
+    return;
+  }
+
+  // Chamada original: (emoji, name, delta)
+  const abs    = Math.abs(delta);
   const caixas = abs === 1 ? '1 caixa' : `${abs} caixas`;
   const action = delta > 0 ? 'adicionadas ao' : 'removidas do';
-  el.innerHTML = `<span class="toast-icon">${icon}</span> ${caixas} ${action} estoque de <strong>${name}</strong>`;
+  el.innerHTML = `<span class="toast-icon">${iconOrMsg}</span> ${caixas} ${action} estoque de <strong>${name}</strong>`;
   el.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
 }
 
-// Modal de quantidade personalizada
+// ── Modal de quantidade personalizada ───────────────────────────────────────
 let modalItemId = null;
 const modal      = document.getElementById('qty-modal');
 const modalInput = document.getElementById('modal-input');

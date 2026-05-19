@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Histórico · Fábrica Brodão</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#811f3b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Estoque">
+<link rel="apple-touch-icon" href="img/icon-192.png">
+
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+
+<style>
+  /* ── Reset & base ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --brand:      #811f3b;
+    --brand-dim:  rgba(129,31,59,.15);
+    --brand-mid:  rgba(129,31,59,.35);
+    --ok:         #3d9970;
+    --ok-dim:     rgba(61,153,112,.15);
+    --warn:       #e8a838;
+    --warn-dim:   rgba(232,168,56,.15);
+    --red:        #c0392b;
+    --red-dim:    rgba(192,57,43,.15);
+    --muted:      #6b6870;
+    --surface:    #1a1820;
+    --surface2:   #201e26;
+    --surface3:   #26232e;
+    --border:     rgba(255,255,255,.07);
+    --border2:    rgba(255,255,255,.12);
+    --text:       #e8e6ec;
+    --text2:      #b0adb8;
+    --font-disp:  'Bebas Neue', sans-serif;
+    --font-body:  'DM Sans', sans-serif;
+    --radius:     12px;
+    --radius-sm:  8px;
+  }
+
+  html, body {
+    background: var(--surface);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  /* ── Loading overlay ── */
+  #loading-overlay {
+    position: fixed; inset: 0; z-index: 999;
+    background: var(--surface);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 1rem;
+    transition: opacity .4s ease;
+  }
+  #loading-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .loading-logo {
+    font-family: var(--font-disp);
+    font-size: 2.2rem;
+    color: var(--brand);
+    letter-spacing: .08em;
+  }
+  .loading-spinner {
+    width: 28px; height: 28px;
+    border: 3px solid var(--border2);
+    border-top-color: var(--brand);
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Header ── */
+  header {
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    position: sticky; top: 0; z-index: 50;
+  }
+  .header-left {
+    display: flex; align-items: center; gap: .9rem;
+  }
+  .logo-brodao {
+    height: 38px; width: auto;
+  }
+  .header-title h1 {
+    font-family: var(--font-disp);
+    font-size: 1.5rem;
+    letter-spacing: .06em;
+    color: var(--text);
+    line-height: 1;
+  }
+  .header-title p {
+    font-size: .72rem;
+    color: var(--muted);
+    margin-top: .15rem;
+  }
+  .hist-badge {
+    background: var(--brand-dim);
+    color: var(--brand);
+    border: 1px solid var(--brand-mid);
+    border-radius: 999px;
+    padding: .3rem .8rem;
+    font-size: .7rem;
+    font-weight: 600;
+    letter-spacing: .04em;
+  }
+  #clock {
+    font-family: var(--font-disp);
+    font-size: 1.3rem;
+    color: var(--muted);
+    letter-spacing: .08em;
+    min-width: 5rem;
+    text-align: right;
+  }
+
+  /* ── KPIs ── */
+  .kpi-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: .75rem;
+    padding: 1rem 1.5rem;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+  .kpi-card {
+    background: var(--surface3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: .8rem 1rem;
+    display: flex; flex-direction: column; gap: .25rem;
+  }
+  .kpi-label {
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .kpi-value {
+    font-family: var(--font-disp);
+    font-size: 1.6rem;
+    letter-spacing: .04em;
+    line-height: 1;
+    color: var(--text);
+  }
+  .kpi-value.ok   { color: var(--ok); }
+  .kpi-value.warn { color: var(--warn); }
+  .kpi-value.brand { color: var(--brand); }
+  .kpi-sub {
+    font-size: .68rem;
+    color: var(--muted);
+  }
+
+  /* ── Tab nav ── */
+  .tab-nav {
+    display: flex;
+    gap: .5rem;
+    padding: 1rem 1.5rem .7rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tab-nav::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    background: none;
+    border: 1px solid var(--border2);
+    border-radius: 999px;
+    padding: .55rem 1.3rem;
+    color: var(--text2);
+    font-family: var(--font-body);
+    font-size: .9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .18s ease;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .tab-btn:hover { border-color: var(--brand-mid); color: var(--text); }
+  .tab-btn.active {
+    background: var(--brand);
+    border-color: var(--brand);
+    color: #fff;
+  }
+
+  /* ── Main content ── */
+  main { padding: 1.25rem 1.5rem; }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ── Filtros ── */
+  .filters-row {
+    display: flex; flex-wrap: wrap; gap: .6rem;
+    margin-bottom: 1.1rem;
+    align-items: center;
+  }
+  .filter-label {
+    font-size: 1rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    font-weight: 600;
+    margin-right: .25rem;
+  }
+  .filter-btn {
+    background: var(--surface3);
+    border: 1px solid var(--border2);
+    border-radius: 999px;
+    padding: .46rem 1rem;
+    font-size: .88rem;
+    font-weight: 500;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all .15s ease;
+  }
+  .filter-btn:hover { border-color: var(--brand-mid); color: var(--text); }
+  .filter-btn.active {
+    background: var(--brand-dim);
+    border-color: var(--brand-mid);
+    color: var(--brand);
+  }
+  .filter-sep {
+    width: 1px; height: 20px;
+    background: var(--border2);
+    margin: 0 .25rem;
+  }
+
+  /* ── Tabela de histórico ── */
+  .table-wrap {
+    overflow-x: auto;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  thead {
+    background: var(--surface3);
+    position: sticky; top: 0; z-index: 2;
+  }
+  th {
+    padding: .65rem 1rem;
+    text-align: left;
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--muted);
+    font-weight: 600;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  td {
+    padding: .7rem 1rem;
+    border-bottom: 1px solid var(--border);
+    font-size: .82rem;
+    color: var(--text2);
+    vertical-align: middle;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,.025); }
+
+  .hist-empty {
+    text-align: center;
+    padding: 3rem 1rem !important;
+    color: var(--muted);
+    font-size: .85rem;
+  }
+
+  /* Badges de tipo */
+  .type-badge {
+    display: inline-flex; align-items: center; gap: .3rem;
+    padding: .2rem .6rem;
+    border-radius: 999px;
+    font-size: .7rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .type-badge.producao      { background: var(--brand-dim); color: var(--brand); border: 1px solid var(--brand-mid); }
+  .type-badge.saida_fabrica { background: var(--warn-dim);  color: var(--warn);  border: 1px solid rgba(232,168,56,.35); }
+  .type-badge.entrega       { background: var(--ok-dim);    color: var(--ok);    border: 1px solid rgba(61,153,112,.3); }
+
+  /* Fonte automática vs manual */
+  .fonte-badge {
+    display: inline-block;
+    padding: .1rem .45rem;
+    border-radius: 999px;
+    font-size: .62rem;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+  .fonte-badge.auto   { background: rgba(100,180,255,.1); color: #64b4ff; border: 1px solid rgba(100,180,255,.25); }
+  .fonte-badge.manual { background: var(--border); color: var(--muted); border: 1px solid var(--border2); }
+
+  /* Itens inline */
+  .itens-list {
+    display: flex; flex-wrap: wrap; gap: .3rem;
+  }
+  .item-chip {
+    background: var(--surface3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: .15rem .5rem;
+    font-size: .7rem;
+    color: var(--text2);
+    white-space: nowrap;
+  }
+  .item-chip .qty {
+    font-weight: 600;
+    color: var(--text);
+    margin-left: .2rem;
+  }
+
+  /* Delta caixas */
+  .delta-plus  { color: var(--ok);   font-weight: 600; }
+  .delta-minus { color: var(--warn); font-weight: 600; }
+
+  /* ── Gráficos ── */
+  .charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  @media (max-width: 700px) {
+    .charts-grid { grid-template-columns: 1fr; }
+  }
+  .chart-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.1rem;
+  }
+  .chart-title {
+    font-family: var(--font-disp);
+    font-size: 1rem;
+    letter-spacing: .06em;
+    color: var(--text2);
+    margin-bottom: .8rem;
+  }
+
+  /* ── Por loja ── */
+  .loja-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: .75rem;
+    margin-bottom: 1.5rem;
+  }
+  .loja-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .loja-card-header {
+    background: var(--surface3);
+    padding: .6rem 1rem;
+    font-weight: 600;
+    font-size: .82rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .loja-card-body { padding: .8rem 1rem; }
+  .loja-stat { display: flex; justify-content: space-between; align-items: center; margin-bottom: .4rem; }
+  .loja-stat:last-child { margin-bottom: 0; }
+  .loja-stat-label { font-size: .72rem; color: var(--muted); }
+  .loja-stat-value { font-family: var(--font-disp); font-size: 1.2rem; letter-spacing: .04em; }
+
+  /* ── Seção title ── */
+  .section-title {
+    font-family: var(--font-disp);
+    font-size: 1rem;
+    letter-spacing: .08em;
+    color: var(--muted);
+    margin-bottom: .8rem;
+    text-transform: uppercase;
+  }
+
+  /* ── Toast ── */
+  #toast {
+    position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(12px);
+    background: var(--surface3);
+    border: 1px solid var(--border2);
+    border-radius: 999px;
+    padding: .55rem 1.2rem;
+    font-size: .82rem;
+    color: var(--text);
+    opacity: 0;
+    transition: opacity .25s ease, transform .25s ease;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 999;
+    box-shadow: 0 4px 20px rgba(0,0,0,.4);
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  #toast.ok  { border-color: rgba(61,153,112,.5); color: var(--ok); }
+  #toast.err { border-color: rgba(192,57,43,.5);  color: var(--red); }
+
+  /* ── Responsive ── */
+  @media (max-width: 600px) {
+    header { padding: .75rem 1rem; }
+    .kpi-bar { padding: .75rem 1rem; }
+    .tab-nav { padding: .75rem 1rem .4rem; }
+    main { padding: 1rem; }
+    th, td { padding: .55rem .75rem; }
+    #clock { display: none; }
+  }
+
+  /* ── Linha vazia estado inicial ── */
+  .empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--muted);
+  }
+  .empty-state .empty-icon { font-size: 2.5rem; display: block; margin-bottom: .75rem; opacity: .5; }
+  .empty-state p { font-size: .85rem; }
+
+  /* ── Paginação ── */
+  .pagination {
+    display: flex; align-items: center; justify-content: flex-end;
+    gap: .5rem; margin-top: .9rem;
+  }
+  .page-info { font-size: .75rem; color: var(--muted); }
+  .page-btn {
+    background: var(--surface3);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    padding: .3rem .65rem;
+    color: var(--text2);
+    font-size: .75rem;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .page-btn:hover:not(:disabled) { border-color: var(--brand-mid); color: var(--text); }
+  .page-btn:disabled { opacity: .35; cursor: default; }
+</style>
+</head>
+<body>
+
+<!-- Loading -->
+<div id="loading-overlay">
+  <div class="loading-logo">Estoque Brodão</div>
+  <div class="loading-spinner"></div>
+</div>
+
+<!-- Header -->
+<header>
+  <div class="header-left">
+    <img src="img/logoBrodao.png" class="logo-brodao" onerror="this.style.display='none'">
+    <div class="header-title">
+      <h1>Histórico <span class="hist-badge">🏭 Fábrica</span></h1>
+      <p>Produção e saídas · tempo real</p>
+    </div>
+  </div>
+  <span id="clock"></span>
+</header>
+
+<!-- KPIs -->
+<div class="kpi-bar">
+  <div class="kpi-card">
+    <div class="kpi-label">Produzido (total)</div>
+    <div class="kpi-value brand" id="kpi-prod-total">—</div>
+    <div class="kpi-sub">salgados</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Entregue às lojas</div>
+    <div class="kpi-value ok" id="kpi-ent-total">—</div>
+    <div class="kpi-sub">salgados</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Saldo em estoque</div>
+    <div class="kpi-value" id="kpi-saldo">—</div>
+    <div class="kpi-sub">salgados</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Registros hoje</div>
+    <div class="kpi-value" id="kpi-hoje">—</div>
+    <div class="kpi-sub" id="kpi-ultimo-sub">—</div>
+  </div>
+</div>
+
+<!-- Tabs -->
+<div class="tab-nav">
+  <button class="tab-btn active" onclick="switchTab('historico')">📋 Histórico</button>
+  <button class="tab-btn"        onclick="switchTab('grafico')">📊 Gráficos</button>
+  <button class="tab-btn"        onclick="switchTab('lojas')">🏪 Por Loja</button>
+</div>
+
+<main>
+
+  <!-- ── Tab: Histórico ── -->
+  <div class="tab-panel active" id="tab-historico">
+    <div class="filters-row">
+      <span class="filter-label">Período</span>
+      <button class="filter-btn active" data-period onclick="setPeriod(this, 7)">7 dias</button>
+      <button class="filter-btn" data-period onclick="setPeriod(this, 30)">30 dias</button>
+      <button class="filter-btn" data-period onclick="setPeriod(this, 90)">90 dias</button>
+      <button class="filter-btn" data-period onclick="setPeriod(this, 0)">Tudo</button>
+
+      <div class="filter-sep"></div>
+      <span class="filter-label">Tipo</span>
+      <button class="filter-btn active" data-type onclick="setType(this, 'all')">Todos</button>
+      <button class="filter-btn" data-type onclick="setType(this, 'producao')">🏭 Produção</button>
+      <button class="filter-btn" data-type onclick="setType(this, 'saida_fabrica')">📤 Saída fábrica</button>
+      <button class="filter-btn" data-type onclick="setType(this, 'entrega')">🚚 Entrega loja</button>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Data / Hora</th>
+            <th>Tipo</th>
+            <th>Origem</th>
+            <th>Caixas</th>
+            <th>Salgados</th>
+            <th>Itens</th>
+          </tr>
+        </thead>
+        <tbody id="hist-tbody">
+          <tr><td colspan="6" class="hist-empty">Carregando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pagination">
+      <span class="page-info" id="page-info"></span>
+      <button class="page-btn" id="page-prev" onclick="changePage(-1)">← Anterior</button>
+      <button class="page-btn" id="page-next" onclick="changePage(+1)">Próxima →</button>
+    </div>
+  </div>
+
+  <!-- ── Tab: Gráficos ── -->
+  <div class="tab-panel" id="tab-grafico">
+    <div class="filters-row">
+      <span class="filter-label">Agrupar por</span>
+      <button class="filter-btn active" data-group onclick="setGroup(this, 'day')">Dia</button>
+      <button class="filter-btn" data-group onclick="setGroup(this, 'week')">Semana</button>
+      <button class="filter-btn" data-group onclick="setGroup(this, 'month')">Mês</button>
+    </div>
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-title">Produção × Entregas</div>
+        <canvas id="chart-main" height="220"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Saldo acumulado</div>
+        <canvas id="chart-saldo" height="220"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Tab: Por loja ── -->
+  <div class="tab-panel" id="tab-lojas">
+    <div class="section-title">Resumo por loja</div>
+    <div class="loja-grid" id="loja-grid"></div>
+
+    <div class="section-title">Saldo por item</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Salgado</th>
+            <th>Produzido (cx)</th>
+            <th>Entregue (cx)</th>
+            <th>Saldo (cx)</th>
+          </tr>
+        </thead>
+        <tbody id="item-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<div id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getDatabase,
+  ref,
+  onValue,
+  query,
+  orderByChild,
+  limitToLast,
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+// ── Config ───────────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyD5WD6H5KDr3cglKW71JRqdgtnKyypwKtc",
+  authDomain: "estoque-brodao.firebaseapp.com",
+  databaseURL: "https://estoque-brodao-default-rtdb.firebaseio.com",
+  projectId: "estoque-brodao",
+};
+const app = initializeApp(firebaseConfig);
+const db  = getDatabase(app);
+
+// ── Catálogo ─────────────────────────────────────────────────
+const PER_BOX = 20;
+const CATALOG = [
+  { id: 1,  emoji: "🧅", name: "Cebola",           sub: "Queijo, Presunto e cebola" },
+  { id: 2,  emoji: "🧀", name: "Queijo e Presunto", sub: "Tradicional" },
+  { id: 3,  emoji: "🍔", name: "Hamburguer",        sub: "Mussarela" },
+  { id: 4,  emoji: "🍯", name: "Hamburguer",        sub: "Cheddar" },
+  { id: 5,  emoji: "🍗", name: "Frango",            sub: "Frango com Requeijão" },
+  { id: 6,  emoji: "🍖", name: "Carne-Seca",        sub: "" },
+  { id: 7,  emoji: "🌿", name: "Pastel de Forno",   sub: "Queijo minas e espinafre" },
+  { id: 8,  emoji: "🍗", name: "Pastel de Forno",   sub: "Frango" },
+  { id: 9,  emoji: "🍕", name: "Calabresa",         sub: "" },
+  { id: 10, emoji: "🍡", name: "Napolitano",        sub: "" },
+  { id: 11, emoji: "🌭", name: "Dogão",             sub: "" },
+  { id: 12, emoji: "🥩", name: "Costela",           sub: "" },
+  { id: 13, emoji: "🥐", name: "Croissant",         sub: "Chocolate" },
+];
+
+const LOJAS = [
+  { key: "travessa",  label: "Loja Travessa" },
+  { key: "flamengo",  label: "Loja Flamengo" },
+  { key: "centro",    label: "Loja Centro"   },
+  { key: "aeroporto", label: "Aeroporto"     },
+];
+
+// ── Estado ───────────────────────────────────────────────────
+let lancamentos    = [];
+let historicoLojas = [];
+let periodoFiltro  = 7;
+let typeFiltro     = "all";
+let groupFiltro    = "day";
+let currentPage    = 0;
+const PAGE_SIZE    = 25;
+
+let chartMain  = null;
+let chartSaldo = null;
+
+// ── Relógio ───────────────────────────────────────────────────
+setInterval(() => {
+  document.getElementById("clock").textContent =
+    new Date().toLocaleTimeString("pt-BR");
+}, 1000);
+document.getElementById("clock").textContent = new Date().toLocaleTimeString("pt-BR");
+
+// ── Toast ─────────────────────────────────────────────────────
+function showToast(msg, type = "") {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.className = `show ${type}`;
+  setTimeout(() => { el.className = ""; }, 3000);
+}
+
+// ── Tabs ─────────────────────────────────────────────────────
+window.switchTab = function(id) {
+  document.querySelectorAll(".tab-btn").forEach(b => {
+    const map = ["historico","grafico","lojas"];
+    b.classList.toggle("active", map[Array.from(document.querySelectorAll(".tab-btn")).indexOf(b)] === id);
+  });
+  document.querySelectorAll(".tab-panel").forEach(p => {
+    p.classList.toggle("active", p.id === `tab-${id}`);
+  });
+  if (id === "grafico")  renderCharts();
+  if (id === "historico") renderTabela();
+  if (id === "lojas")    renderLojas();
+};
+
+// ── Filtros ───────────────────────────────────────────────────
+window.setPeriod = function(btn, days) {
+  document.querySelectorAll("[data-period]").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  periodoFiltro = days;
+  currentPage = 0;
+  renderTabela();
+  renderCharts();
+};
+window.setType = function(btn, type) {
+  document.querySelectorAll("[data-type]").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  typeFiltro = type;
+  currentPage = 0;
+  renderTabela();
+};
+window.setGroup = function(btn, group) {
+  document.querySelectorAll("[data-group]").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  groupFiltro = group;
+  renderCharts();
+};
+
+// ── Paginação ─────────────────────────────────────────────────
+window.changePage = function(dir) {
+  currentPage = Math.max(0, currentPage + dir);
+  renderTabela();
+};
+
+// ── Helpers de data ───────────────────────────────────────────
+function formatDT(ts) {
+  if (!ts) return "—";
+  return new Date(ts).toLocaleString("pt-BR", {
+    day: "2-digit", month: "2-digit", year: "numeric",
+    hour: "2-digit", minute: "2-digit",
+  });
+}
+function dayKey(ts) {
+  const d = new Date(ts);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+function weekKey(ts) {
+  const d = new Date(ts);
+  const jan1 = new Date(d.getFullYear(), 0, 1);
+  const week = Math.ceil(((d - jan1) / 86400000 + jan1.getDay() + 1) / 7);
+  return `${d.getFullYear()}-S${String(week).padStart(2,"0")}`;
+}
+function monthKey(ts) {
+  const d = new Date(ts);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+}
+function groupKey(ts) {
+  if (groupFiltro === "week")  return weekKey(ts);
+  if (groupFiltro === "month") return monthKey(ts);
+  return dayKey(ts);
+}
+function isInPeriod(ts) {
+  if (!periodoFiltro) return true;
+  return new Date(ts).getTime() >= Date.now() - periodoFiltro * 86400000;
+}
+
+// ── Normalizar tipo ───────────────────────────────────────────
+// Converte tipos legados / novos para um padrão consistente
+function normalizeTipo(tipo) {
+  if (tipo === "producao")      return "producao";
+  if (tipo === "saida_fabrica") return "saida_fabrica";
+  if (tipo === "entrega")       return "entrega";
+  return tipo || "producao";
+}
+
+// ── allEvents ─────────────────────────────────────────────────
+function allEvents() {
+  const events = [];
+
+  // Lançamentos automáticos/manuais da fábrica (nó: lancamentos/)
+  lancamentos.forEach(l => {
+    const tipo    = normalizeTipo(l.tipo);
+    const caixas  = (l.itens || []).reduce((s, i) => s + (i.qty || 0), 0);
+    const salgados = caixas * PER_BOX;
+    events.push({
+      tipo,
+      timestamp: l.timestamp,
+      destino:   tipo === "entrega" ? (l.lojaLabel || "Loja") : "Fábrica",
+      caixas,
+      salgados,
+      itens:     l.itens || [],
+      fonte:     l.fonte || "manual",   // "fabrica_auto" ou "manual"
+    });
+  });
+
+  // Entregas confirmadas pelas lojas (nó: historico/)
+  historicoLojas.forEach(h => {
+    const itens    = Array.isArray(h.itens)
+      ? h.itens
+      : Object.entries(h.itens || {}).map(([id, qty]) => ({ id, qty }));
+    const caixas   = itens.reduce((s, i) => s + (i.qty || 0), 0);
+    const salgados = caixas * PER_BOX;
+    events.push({
+      tipo:      "entrega",
+      timestamp: h.entregueEm || h.timestamp,
+      destino:   h.nomeLoja || h.lojaLabel || h.loja || "Loja",
+      caixas,
+      salgados,
+      itens,
+      fonte:     "loja",
+    });
+  });
+
+  events.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+  return events;
+}
+
+// ── KPIs ──────────────────────────────────────────────────────
+function updateKPIs() {
+  const events = allEvents();
+  let totalProd = 0, totalEnt = 0, hoje = 0;
+  const todayKey = dayKey(new Date().toISOString());
+
+  events.forEach(e => {
+    if (e.tipo === "producao")      totalProd += e.salgados;
+    if (e.tipo === "entrega")       totalEnt  += e.salgados;
+    if (dayKey(e.timestamp) === todayKey) hoje++;
+  });
+
+  const saldo = totalProd - totalEnt;
+  document.getElementById("kpi-prod-total").textContent = totalProd.toLocaleString("pt-BR");
+  document.getElementById("kpi-ent-total").textContent  = totalEnt.toLocaleString("pt-BR");
+
+  const saldoEl = document.getElementById("kpi-saldo");
+  saldoEl.textContent = saldo.toLocaleString("pt-BR");
+  saldoEl.className   = `kpi-value ${saldo >= 0 ? "ok" : "warn"}`;
+
+  document.getElementById("kpi-hoje").textContent = hoje;
+
+  const ultimo = events[0];
+  document.getElementById("kpi-ultimo-sub").textContent = ultimo
+    ? `último: ${formatDT(ultimo.timestamp)}`
+    : "nenhum registro";
+}
+
+// ── Tabela ────────────────────────────────────────────────────
+function renderTabela() {
+  const tbody = document.getElementById("hist-tbody");
+  let events = allEvents();
+
+  if (periodoFiltro) events = events.filter(e => isInPeriod(e.timestamp));
+  if (typeFiltro !== "all") events = events.filter(e => e.tipo === typeFiltro);
+
+  if (events.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" class="hist-empty">
+      <span style="display:block;font-size:2rem;margin-bottom:.5rem;opacity:.4">📭</span>
+      Nenhum registro encontrado para este filtro.
+    </td></tr>`;
+    document.getElementById("page-info").textContent = "";
+    document.getElementById("page-prev").disabled = true;
+    document.getElementById("page-next").disabled = true;
+    return;
+  }
+
+  // Paginação
+  const totalPages = Math.ceil(events.length / PAGE_SIZE);
+  currentPage = Math.min(currentPage, totalPages - 1);
+  const slice = events.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE);
+
+  document.getElementById("page-info").textContent =
+    `${currentPage + 1} / ${totalPages} (${events.length} registros)`;
+  document.getElementById("page-prev").disabled = currentPage === 0;
+  document.getElementById("page-next").disabled = currentPage >= totalPages - 1;
+
+  tbody.innerHTML = slice.map(e => {
+    const tipoLabel = {
+      producao:      "🏭 Produção",
+      saida_fabrica: "📤 Saída fábrica",
+      entrega:       "🚚 Entrega",
+    }[e.tipo] || e.tipo;
+
+    const fonteLabel  = e.fonte === "fabrica_auto" ? "auto" : "manual";
+    const fonteClass  = e.fonte === "fabrica_auto" ? "auto" : "manual";
+    const fonteTitle  = e.fonte === "fabrica_auto"
+      ? "Registrado automaticamente pela fábrica"
+      : "Registrado manualmente";
+
+    const deltaClass  = e.tipo === "producao" ? "delta-plus"
+                      : e.tipo === "saida_fabrica" ? "delta-minus"
+                      : "";
+    const deltaSign   = e.tipo === "producao" ? "+" : e.tipo === "saida_fabrica" ? "−" : "";
+
+    const itensHtml = e.itens.slice(0, 4).map(i => {
+      const cat = CATALOG.find(c => String(c.id) === String(i.id));
+      const emoji = cat?.emoji || i.emoji || "";
+      const name  = cat?.name  || i.name  || `#${i.id}`;
+      return `<span class="item-chip">${emoji} ${name}<span class="qty">×${i.qty}</span></span>`;
+    }).join("") + (e.itens.length > 4 ? `<span class="item-chip" style="color:var(--muted)">+${e.itens.length - 4}</span>` : "");
+
+    return `
+      <tr>
+        <td style="color:var(--text);white-space:nowrap">${formatDT(e.timestamp)}</td>
+        <td>
+          <span class="type-badge ${e.tipo}">${tipoLabel}</span>
+        </td>
+        <td style="color:var(--text)">
+          ${e.destino}
+          <span class="fonte-badge ${fonteClass}" title="${fonteTitle}">${fonteLabel}</span>
+        </td>
+        <td class="${deltaClass}">${deltaSign}${e.caixas}</td>
+        <td class="${deltaClass}">${deltaSign}${e.salgados.toLocaleString("pt-BR")}</td>
+        <td><div class="itens-list">${itensHtml}</div></td>
+      </tr>
+    `;
+  }).join("");
+}
+
+// ── Gráficos ─────────────────────────────────────────────────
+function renderCharts() {
+  if (!window.Chart) {
+    const s = document.createElement("script");
+    s.src = "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js";
+    s.onload = () => drawCharts();
+    document.head.appendChild(s);
+  } else {
+    drawCharts();
+  }
+}
+
+function drawCharts() {
+  let events = allEvents();
+  if (periodoFiltro) events = events.filter(e => isInPeriod(e.timestamp));
+
+  const buckets = {};
+  events.forEach(e => {
+    const k = groupKey(e.timestamp);
+    if (!buckets[k]) buckets[k] = { prod: 0, ent: 0 };
+    if (e.tipo === "producao") buckets[k].prod += e.salgados;
+    if (e.tipo === "entrega")  buckets[k].ent  += e.salgados;
+  });
+
+  const labels   = Object.keys(buckets).sort();
+  const prodData = labels.map(k => buckets[k].prod);
+  const entData  = labels.map(k => buckets[k].ent);
+
+  let acc = 0;
+  const saldoData = labels.map((k, i) => { acc += prodData[i] - entData[i]; return acc; });
+
+  const baseOpts = {
+    responsive: true, maintainAspectRatio: true,
+    plugins: { legend: { display: false }, tooltip: { mode: "index", intersect: false } },
+    scales: {
+      x: { grid: { color: "rgba(255,255,255,.04)" }, ticks: { color: "#6b6870", font: { size: 11 } } },
+      y: { grid: { color: "rgba(255,255,255,.04)" }, ticks: { color: "#6b6870", font: { size: 11 } } },
+    },
+  };
+
+  const ctx1 = document.getElementById("chart-main").getContext("2d");
+  if (chartMain) chartMain.destroy();
+  chartMain = new window.Chart(ctx1, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [
+        { label: "Produção", data: prodData, backgroundColor: "rgba(129,31,59,.7)", borderColor: "#811f3b", borderWidth: 1, borderRadius: 4 },
+        { label: "Entregue", data: entData,  backgroundColor: "rgba(61,153,112,.55)", borderColor: "#3d9970", borderWidth: 1, borderRadius: 4 },
+      ],
+    },
+    options: baseOpts,
+  });
+
+  const ctx2 = document.getElementById("chart-saldo").getContext("2d");
+  if (chartSaldo) chartSaldo.destroy();
+  chartSaldo = new window.Chart(ctx2, {
+    type: "line",
+    data: {
+      labels,
+      datasets: [{
+        label: "Saldo", data: saldoData,
+        borderColor: "#e8a838", backgroundColor: "rgba(232,168,56,.12)",
+        fill: true, tension: .35, pointRadius: 3, pointBackgroundColor: "#e8a838",
+      }],
+    },
+    options: { ...baseOpts, scales: { ...baseOpts.scales, y: { ...baseOpts.scales.y, beginAtZero: false } } },
+  });
+}
+
+// ── Por loja ─────────────────────────────────────────────────
+function renderLojas() {
+  const events = allEvents().filter(e => e.tipo === "entrega");
+
+  const porLoja = {};
+  LOJAS.forEach(l => { porLoja[l.label] = { caixas: 0, salgados: 0 }; });
+  events.forEach(e => {
+    const k = e.destino;
+    if (!porLoja[k]) porLoja[k] = { caixas: 0, salgados: 0 };
+    porLoja[k].caixas   += e.caixas;
+    porLoja[k].salgados += e.salgados;
+  });
+
+  const grid = document.getElementById("loja-grid");
+  grid.innerHTML = "";
+  Object.entries(porLoja).forEach(([label, data]) => {
+    const card = document.createElement("div");
+    card.className = "loja-card";
+    card.innerHTML = `
+      <div class="loja-card-header">${label}</div>
+      <div class="loja-card-body">
+        <div class="loja-stat">
+          <span class="loja-stat-label">Caixas recebidas</span>
+          <span class="loja-stat-value">${data.caixas}</span>
+        </div>
+        <div class="loja-stat">
+          <span class="loja-stat-label">Salgados recebidos</span>
+          <span class="loja-stat-value" style="font-size:1rem">${data.salgados.toLocaleString("pt-BR")}</span>
+        </div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+
+  // Tabela por item
+  const porItem = {};
+  CATALOG.forEach(c => { porItem[c.id] = { item: c, prodCx: 0, entCx: 0 }; });
+
+  allEvents().forEach(e => {
+    e.itens.forEach(i => {
+      const key = Number(i.id);
+      if (!porItem[key]) return;
+      if (e.tipo === "producao") porItem[key].prodCx += i.qty || 0;
+      if (e.tipo === "entrega")  porItem[key].entCx  += i.qty || 0;
+    });
+  });
+
+  const tbody = document.getElementById("item-tbody");
+  tbody.innerHTML = Object.values(porItem).map(({ item, prodCx, entCx }) => {
+    const saldo = prodCx - entCx;
+    return `
+      <tr>
+        <td>${item.emoji} ${item.name}${item.sub ? ` <span style="color:var(--muted);font-size:.68rem">${item.sub}</span>` : ""}</td>
+        <td style="color:var(--brand)">${prodCx}</td>
+        <td style="color:var(--ok)">${entCx}</td>
+        <td style="color:${saldo >= 0 ? "var(--warn)" : "var(--ok)"}; font-family:var(--font-disp);font-size:1.1rem">${saldo}</td>
+      </tr>
+    `;
+  }).join("");
+}
+
+// ── Firebase ─────────────────────────────────────────────────
+function initFirebase() {
+  const lancRef = query(
+    ref(db, "lancamentos"),
+    orderByChild("timestamp"),
+    limitToLast(500),
+  );
+  onValue(lancRef, snap => {
+    lancamentos = [];
+    snap.forEach(child => lancamentos.push(child.val()));
+    lancamentos.reverse();
+    updateKPIs();
+    renderTabela();
+  });
+
+  let loadsRestantes = LOJAS.length;
+  historicoLojas = [];
+
+  LOJAS.forEach(loja => {
+    const hRef = query(
+      ref(db, `historico/${loja.key}`),
+      orderByChild("entregueEm"),
+      limitToLast(200),
+    );
+    onValue(hRef, snap => {
+      historicoLojas = historicoLojas.filter(h => h._lojaKey !== loja.key);
+      snap.forEach(child => {
+        historicoLojas.push({ ...child.val(), _lojaKey: loja.key, lojaLabel: loja.label });
+      });
+      loadsRestantes = Math.max(0, loadsRestantes - 1);
+      if (loadsRestantes === 0) {
+        document.getElementById("loading-overlay").classList.add("hidden");
+      }
+      updateKPIs();
+      renderTabela();
+    });
+  });
+}
+
+initFirebase();
+</script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/service-worker.js')
+        .catch(err => console.warn('SW não registrado:', err));
+    });
+  }
+</script>
+</body>
+</html>
