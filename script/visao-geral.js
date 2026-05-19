@@ -230,7 +230,8 @@ function updateGlobalBar() {
 // ── Toggle lista de items ────────────────────────────────────
 window.toggleItems = function (btn) {
   btn.classList.toggle("open");
-  btn.nextElementSibling.classList.toggle("open");
+  const list = btn.closest(".sc-items").querySelector(".items-list");
+  list.classList.toggle("open");
   btn.textContent = btn.classList.contains("open") ? "" : "Ver todos os itens";
   btn.innerHTML += ' <em class="chevron">▾</em>';
 };
